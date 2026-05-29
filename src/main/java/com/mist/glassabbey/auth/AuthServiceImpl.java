@@ -41,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
                     return creatorRepository.save(existing);
                 })
                 .orElseGet(() -> {
-                    Creator creator = new Creator().builder()
+                    Creator creator = Creator.builder()
                             .pubkey(pubkey)
                             .name(name)
                             .picture(picture)
