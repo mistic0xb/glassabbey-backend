@@ -1,9 +1,14 @@
 package com.mist.glassabbey.auth;
 
+import com.mist.glassabbey.auth.dtos.AuthResponse;
 import com.mist.glassabbey.auth.dtos.ChallengeDto;
 import com.mist.glassabbey.auth.dtos.VerifyChallengeRequest;
 import com.mist.glassabbey.creator.Creator;
+import com.mist.glassabbey.creator.CreatorMapper;
+import com.mist.glassabbey.creator.CreatorRepository;
+import com.mist.glassabbey.creator.dtos.CreatorDto;
 import com.mist.glassabbey.exception.UnauthorizedException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -14,6 +19,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 
 @Slf4j
 @RestController
@@ -22,6 +29,9 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final CreatorMapper creatorMapper;
+    private final CreatorRepository creatorRepository; //TODO: move it to service layer
+    private final JwtService jwtService;
 
     @GetMapping(path = "/challenge")
     public ResponseEntity<ChallengeDto> getChallenge(HttpSession session) {
@@ -36,7 +46,7 @@ public class AuthController {
     }
 
     @PostMapping(path = "/verify")
-    public ResponseEntity<?> verify(
+    public ResponseEntity<AuthResponse> verify(
             @Valid @RequestBody VerifyChallengeRequest request,
             HttpSession session
     ) {
@@ -50,28 +60,37 @@ public class AuthController {
             throw new UnauthorizedException("Invalid signature");
         }
 
-        // remove used challenge
-        session.removeAttribute("pendingChallenge");
+        session.invalidate(); // done with challenge session
 
         // upsert creator
         Creator creator = authService.upsertCreator(request.pubkey(), request.name(), request.picture());
 
-        // replacing temp challenge session with proper auth session
-        session.setAttribute("creatorId", creator.getId().toString());
-        session.setAttribute("pubkey", creator.getPubkey());
+        // generate jwt
+        String token = jwtService.generate(creator.getId(), creator.getPubkey());
+        log.info("generated jwt-token={}", token);
 
         log.info("Creator logged in: pubkey={}", creator.getPubkey());
 
-        return ResponseEntity.ok().body(creator);
+        return ResponseEntity.ok().body(new AuthResponse(
+                token,
+                creator.getId().toString(),
+                creator.getPubkey(),
+                creator.getName(),
+                creator.getPicture()
+        ));
     }
 
     @GetMapping(path = "/me")
-    public ResponseEntity<Creator> me(
-            @AuthenticationPrincipal Creator creator
+    public ResponseEntity<CreatorDto> me(
+            @AuthenticationPrincipal UUID creatorId
     ) {
-        return ResponseEntity.ok().body(creator);
+        Creator creator = creatorRepository.findCreatorById(creatorId)
+                .orElseThrow(() -> new EntityNotFoundException("Creator not found with id: " + creatorId));
+        CreatorDto creatorDto = creatorMapper.toDto(creator);
+        return ResponseEntity.ok().body(creatorDto);
     }
 
+    // TODO: remove this, frontend deletes the jwt
     @PostMapping(path = "/logout")
     public ResponseEntity<Void> logout(
             HttpServletRequest request

@@ -11,6 +11,7 @@ public interface AuthService {
 
     boolean verifyAndLogin(VerifyChallengeRequest request, String expectedChallenge);
 
+    // TODO: refactor this, move to creator service
     Creator upsertCreator(String pubkey, String name, String picture);
 
     Optional<Creator> findById(String id);
