@@ -1,6 +1,5 @@
 package com.mist.glassabbey.creator.dtos;
 
-import com.mist.glassabbey.gallery.Gallery;
 import com.mist.glassabbey.gallery.dtos.GalleryDto;
 
 import java.time.Instant;
