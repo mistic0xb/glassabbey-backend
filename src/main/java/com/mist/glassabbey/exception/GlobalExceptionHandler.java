@@ -6,9 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -27,5 +28,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleUnauthorizedExceptions(UnauthorizedException ex) {
         ErrorDto errDto = new ErrorDto(ex.getMessage());
         return new ResponseEntity<>(errDto, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorDto> handleForbiddenExceptions(ForbiddenException ex) {
+        ErrorDto errDto = new ErrorDto(ex.getMessage());
+        return new ResponseEntity<>(errDto, HttpStatus.FORBIDDEN);
     }
 }
