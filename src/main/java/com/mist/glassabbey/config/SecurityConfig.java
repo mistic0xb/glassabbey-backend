@@ -1,8 +1,6 @@
 package com.mist.glassabbey.config;
 
-import com.mist.glassabbey.security.SessionAuthFilter;
-import jakarta.servlet.http.HttpServletRequest;
-import org.jspecify.annotations.Nullable;
+import com.mist.glassabbey.auth.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,7 +20,7 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, SessionAuthFilter sessionAuthFilter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
 
@@ -31,20 +29,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/challenge").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/verify").permitAll()
-
+                        .requestMatchers(HttpMethod.GET,"/api/v1/gallery").permitAll()
                         .requestMatchers("/ws/**").permitAll()
-
                         .anyRequest().authenticated()
                 )
 
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(sessionAuthFilter, UsernamePasswordAuthenticationFilter.class)
-
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(401);
