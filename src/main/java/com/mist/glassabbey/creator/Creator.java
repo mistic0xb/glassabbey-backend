@@ -1,9 +1,11 @@
 package com.mist.glassabbey.creator;
 
+import com.mist.glassabbey.gallery.Gallery;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -22,6 +24,7 @@ public class Creator {
     private String pubkey;
 
     private String name;
+
     private String picture;
 
     @Column(name = "created_at")
@@ -29,4 +32,12 @@ public class Creator {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @OneToMany(
+            mappedBy = "creator",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY
+    )
+    @Builder.Default
+    private List<Gallery> galleries = new ArrayList<>();
 }
