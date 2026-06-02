@@ -53,7 +53,6 @@ public class Gallery {
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
-    @OrderBy("position ASC")
     @Builder.Default
     private List<Piece> pieces = new ArrayList<>();
 
