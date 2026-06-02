@@ -1,8 +1,8 @@
 package com.mist.glassabbey.auth;
 
+import fr.acinq.secp256k1.Secp256k1;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import fr.acinq.secp256k1.Secp256k1;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

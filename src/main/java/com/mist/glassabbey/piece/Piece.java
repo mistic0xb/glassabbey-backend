@@ -2,10 +2,9 @@ package com.mist.glassabbey.piece;
 
 import com.mist.glassabbey.auction.Auction;
 import com.mist.glassabbey.gallery.Gallery;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import lombok.*;
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.Instant;
 import java.util.UUID;
 

@@ -9,7 +9,6 @@ import com.mist.glassabbey.gallery.dtos.UpdateGalleryRequest;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +63,7 @@ public class GalleryServiceImpl implements GalleryService {
     @Override
     public GalleryDto getById(UUID galleryId) {
         Gallery gallery = galleryRepository.findById(galleryId)
-                .orElseThrow(() -> new EntityNotFoundException("Gallery not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Gallery not found with galleryId: " + galleryId));
 
         return galleryMapper.toDto(gallery);
     }
