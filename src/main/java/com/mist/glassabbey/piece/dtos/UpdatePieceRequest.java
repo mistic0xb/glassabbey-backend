@@ -1,8 +1,6 @@
 package com.mist.glassabbey.piece.dtos;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 public record UpdatePieceRequest(
         @NotBlank(message = "Title is required")
@@ -14,7 +12,11 @@ public record UpdatePieceRequest(
         @Size(min = 10, max = 5000, message = "Description name must be between {min} and {max} characters")
         String description,
 
-        String imgUrl
+        String imgUrl,
 
+        @NotNull
+        @Positive(message = "Base price must be positive")
+        @Max(value = 100_000_000, message = "Base price too large")
+        Long basePriceSats
 ) {
 }

@@ -33,6 +33,9 @@ public class Piece {
     @Column(name = "img_url")
     private String imgUrl;
 
+    @Column(name = "base_price_sats")
+    private Long basePriceSats;
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
