@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NWC Bid Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+</head>
+<body>
+<h1>Auction Bid Test</h1>
+<pre id="log"></pre>
+
+<script>
+    const log = document.getElementById('log');
+
+    function appendLog(message) {
+        log.textContent += message + '\n';
+        console.log(message);
+    }
+
+    const client = new StompJs.Client({
+        brokerURL: 'ws://localhost:8080/ws',   // Make sure this matches your WebSocket config
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+
+        onConnect: () => {
+            appendLog('✅ Connected to WebSocket');
+
+            // Subscribe to auction room (public updates)
+            client.subscribe('/topic/auction/79b4207d-d0fa-4e6f-87fb-311701678892', message => {
+                appendLog('Room Update: ' + message.body);
+            });
+
+            // Subscribe to personal user queue (important for bid results)
+            client.subscribe('/user/queue/bid', message => {
+                appendLog('Personal Message: ' + message.body);
+            });
+
+            // Optional: Subscribe to errors
+            client.subscribe('/user/queue/errors', message => {
+                appendLog('❌ Error: ' + message.body);
+            });
+        },
+
+        onStompError: (frame) => {
+            appendLog('❌ STOMP Error: ' + frame.headers.message);
+            console.error(frame);
+        },
+
+        onWebSocketError: (event) => {
+            appendLog('❌ WebSocket Error: ' + event);
+        },
+
+        onDisconnect: () => {
+            appendLog('Disconnected from server');
+        }
+    });
+
+    client.activate();
+
+    const idempotencyKey = crypto.randomUUID();
+
+    // Submit bid button (manual trigger)
+    window.submitBid = function () {
+        if (!client.connected) {
+            appendLog("Not connected yet!");
+            return;
+        }
+
+        const bidIncrement = parseInt(
+            document.getElementById('bidAmount').value,
+            10
+        );
+
+        if (isNaN(bidIncrement) || bidIncrement <= 0) {
+            appendLog("❌ Invalid bid amount");
+            return;
+        }
+
+        const bidderName = document.getElementById('bidderName').value;
+
+
+        const bidData = {
+            bidderName: bidderName,
+            bidIncrementSats: bidIncrement,
+            idempotencyKey: idempotencyKey
+        };
+
+        client.publish({
+            destination: '/app/auction/79b4207d-d0fa-4e6f-87fb-311701678892/bid',
+            body: JSON.stringify(bidData)
+        });
+
+        appendLog('Bid submitted: ' + JSON.stringify(bidData));
+    };
+</script>
+
+<div>
+    <label>
+        Bid Increment (sats):
+        <input type="number" id="bidAmount" value="100" min="1">
+    </label>
+
+    <label>
+        Bid Name:
+        <input type="text" id="bidderName">
+    </label>
+    <button onclick="submitBid()">Submit Test Bid</button>
+</div>
+</body>
+</html>

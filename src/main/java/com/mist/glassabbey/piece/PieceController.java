@@ -4,6 +4,7 @@ package com.mist.glassabbey.piece;
 import com.mist.glassabbey.piece.dtos.CreatePieceRequest;
 import com.mist.glassabbey.piece.dtos.PieceDto;
 import com.mist.glassabbey.piece.dtos.UpdatePieceRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,7 +22,7 @@ public class PieceController {
     @PostMapping
     public ResponseEntity<PieceDto> addPiece(
             @AuthenticationPrincipal UUID creatorId,
-            @RequestBody CreatePieceRequest request,
+            @Valid @RequestBody CreatePieceRequest request,
             @PathVariable UUID galleryId
     ) {
         return ResponseEntity.ok()
@@ -50,7 +51,7 @@ public class PieceController {
             @AuthenticationPrincipal UUID creatorId,
             @PathVariable UUID pieceId,
             @PathVariable UUID galleryId,
-            @RequestBody UpdatePieceRequest request
+            @Valid @RequestBody UpdatePieceRequest request
     ) {
         PieceDto updatedPieceDto = pieceService.updatePiece(creatorId, galleryId, pieceId, request);
         return ResponseEntity.ok().body(updatedPieceDto);

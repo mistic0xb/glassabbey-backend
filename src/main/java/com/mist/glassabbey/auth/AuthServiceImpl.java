@@ -54,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Optional<Creator> findById(String id) {
-       return creatorRepository.findById(UUID.fromString(id));
+    public Optional<Creator> findById(UUID id) {
+       return creatorRepository.findById(id);
     }
 }

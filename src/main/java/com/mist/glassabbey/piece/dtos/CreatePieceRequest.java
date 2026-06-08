@@ -14,7 +14,7 @@ public record CreatePieceRequest(
 
         String imgUrl,
 
-        @NotNull
+        @NotNull(message = "Base price should not be empty")
         @Positive(message = "Base price must be positive")
         @Max(value = 100_000_000, message = "Base price too large")
         Long basePriceSats

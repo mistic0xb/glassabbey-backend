@@ -39,6 +39,7 @@ public class PieceServiceImpl implements PieceService {
                 .title(request.title())
                 .description(request.description())
                 .imgUrl(request.imgUrl())
+                .basePriceSats(request.basePriceSats())
                 .build();
 
         Piece saved = pieceRepository.save(newPiece);
@@ -76,6 +77,7 @@ public class PieceServiceImpl implements PieceService {
         existingPiece.setTitle(request.title());
         existingPiece.setDescription(request.description());
         existingPiece.setImgUrl(request.imgUrl());
+        existingPiece.setBasePriceSats(request.basePriceSats());
 
         return pieceMapper.toDto(pieceRepository.save(existingPiece));
     }

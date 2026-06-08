@@ -1,5 +1,6 @@
 package com.mist.glassabbey.gallery;
 
+import com.mist.glassabbey.auction.AuctionService;
 import com.mist.glassabbey.creator.Creator;
 import com.mist.glassabbey.creator.CreatorRepository;
 import com.mist.glassabbey.exception.ForbiddenException;
@@ -23,6 +24,7 @@ public class GalleryServiceImpl implements GalleryService {
     private final GalleryRepository galleryRepository;
     private final CreatorRepository creatorRepository;
     private final GalleryMapper galleryMapper;
+    private final AuctionService auctionService;
 
     @Override
     public Gallery create(UUID creatorId, CreateGalleryRequest request) {
@@ -111,7 +113,7 @@ public class GalleryServiceImpl implements GalleryService {
         existingGallery.setPublishedAt(Instant.now());
 
         // TODO: create auctions for each piece here
-        // auctionService.createForGallery(existingGallery.getId());
+         auctionService.createForGallery(existingGallery.getId());
 
         log.info("Gallery published: galleryId={}", galleryId);
         return galleryMapper.toDto(galleryRepository.save(existingGallery));

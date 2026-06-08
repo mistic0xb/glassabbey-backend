@@ -9,6 +9,7 @@ public record PieceDto(
         String title,
         String description,
         String imgUrl,
+        String basePriceSats,
         Instant createdAt,
         Instant updatedAt
 ) {

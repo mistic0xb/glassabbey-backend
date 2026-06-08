@@ -16,4 +16,6 @@ public interface GalleryRepository extends JpaRepository<Gallery, UUID> {
     List<Gallery> findByCreatorIdOrderByCreatedAtDesc(UUID creatorId);
 
     Optional<Gallery> findByIdAndCreatorId(UUID galleryId,  UUID creatorId);
+
+    boolean existsByIdAndCreatorId(UUID galleryId, UUID creatorId);
 }

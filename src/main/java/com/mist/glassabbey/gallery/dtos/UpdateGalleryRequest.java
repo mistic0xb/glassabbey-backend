@@ -15,7 +15,6 @@ public record UpdateGalleryRequest(
 
         @NotBlank(message = "Description is required")
         @Size(min = 10, max = 5000, message = "Description name must be between {min} and {max} characters")
-        @Pattern(regexp = "^[A-Za-z0-9\\- ]+$", message = "Description can only contain letters,numbers,spaces and hyphens")
         String description,
 
         @NotNull(message = "Gallery auction end date is needed")
