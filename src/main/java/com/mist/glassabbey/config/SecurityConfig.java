@@ -27,17 +27,26 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/challenge").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/verify").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/gallery").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/gallery/*").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/gallery/*/piece").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/gallery/*/piece/*").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/auction/piece/*").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/auction/*/bid").permitAll()
-                        .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
-                        .anyRequest().authenticated()
+                                // Auth endpoints
+                                .requestMatchers(HttpMethod.GET, "/api/v1/auth/challenge").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/auth/verify").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/auth/me").permitAll()
+
+                                // Protected GET endpoints
+                                .requestMatchers(HttpMethod.GET, "/api/v1/gallery/my").authenticated()
+
+                                // Public endpoints
+                                .requestMatchers(HttpMethod.GET, "/api/v1/gallery/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/auction/**").permitAll()
+//                                .requestMatchers(HttpMethod.GET, "/api/v1/gallery").permitAll()
+//                        .requestMatchers(HttpMethod.GET, "/api/v1/gallery/*/piece").permitAll()
+//                        .requestMatchers(HttpMethod.GET, "/api/v1/gallery/*/piece/*").permitAll()
+//                        .requestMatchers(HttpMethod.GET, "/api/v1/auction/piece/*").permitAll()
+//                        .requestMatchers(HttpMethod.GET, "/api/v1/auction/*/bid").permitAll()
+                                .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
+                                .requestMatchers("/ws/**").permitAll()
+
+                                .anyRequest().authenticated()
                 )
 
                 .sessionManagement(session -> session

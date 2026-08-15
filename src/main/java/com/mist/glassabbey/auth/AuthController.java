@@ -10,10 +10,13 @@ import com.mist.glassabbey.creator.dtos.CreatorDto;
 import com.mist.glassabbey.exception.UnauthorizedException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -48,7 +51,8 @@ public class AuthController {
     @PostMapping(path = "/verify")
     public ResponseEntity<AuthResponse> verify(
             @Valid @RequestBody VerifyChallengeRequest request,
-            HttpSession session
+            HttpSession session,
+            HttpServletResponse response
     ) {
         String pendingChallenge = (String) session.getAttribute("pendingChallenge");
         if (pendingChallenge == null) {
@@ -71,6 +75,17 @@ public class AuthController {
 
         log.info("Creator logged in: pubkey={}", creator.getPubkey());
 
+        // HttpOnly cookie
+        var jwtCookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+
         return ResponseEntity.ok().body(new AuthResponse(
                 token,
                 creator.getId().toString(),
@@ -90,15 +105,20 @@ public class AuthController {
         return ResponseEntity.ok().body(creatorDto);
     }
 
-    // TODO: remove this, frontend deletes the jwt
     @PostMapping(path = "/logout")
     public ResponseEntity<Void> logout(
-            HttpServletRequest request
+            HttpServletResponse response
     ) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+        // Clear httpOnly cookie on logout
+        var cookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE,cookie.toString());
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok().build();
     }
