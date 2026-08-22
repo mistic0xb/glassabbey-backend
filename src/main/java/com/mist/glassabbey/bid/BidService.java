@@ -8,13 +8,13 @@ import java.util.List;
 import java.util.UUID;
 
 public interface BidService {
-    BidAcceptedResponse submitBid(UUID pieceId, SubmitBidRequest request, String sessionId);
+    BidAcceptedResponse submitBid(UUID pieceId, SubmitBidRequest request, String userPrincipal);
 
     void confirmPayment(String paymentHash);
 
     boolean isPaymentConfirmed(UUID bidId);
 
-    void cancelBid(UUID bidId, String sessionId);
+    void cancelBid(UUID bidId, String userPrincipal);
 
     List<BidDto> getLeaderBoard(UUID auctionId);
 }

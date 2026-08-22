@@ -36,7 +36,7 @@ public class BidServiceImpl implements BidService {
 
     @Override
     @Transactional
-    public BidAcceptedResponse submitBid(UUID pieceId, SubmitBidRequest request, String sessionId) {
+    public BidAcceptedResponse submitBid(UUID pieceId, SubmitBidRequest request, String userPrincipal) {
         // 1. check idempotency
         Optional<Bid> existingBid = bidRepository.findByIdempotencyKey(request.idempotencyKey());
         if (existingBid.isPresent()) {
@@ -93,7 +93,7 @@ public class BidServiceImpl implements BidService {
         Bid bid = Bid.builder()
                 .auction(auction)
                 .nwcConn(nwcConn)
-                .sessionId(sessionId)
+                .userPrincipal(userPrincipal)
                 .idempotencyKey(request.idempotencyKey())
                 .bidderName(request.bidderName())
                 .bidIncrementSats(request.bidIncrementSats())
@@ -157,7 +157,7 @@ public class BidServiceImpl implements BidService {
                 auction.getCurrentPriceSats(),
                 bid.getBidderName(),
                 bid.getWillingAmtSats(),
-                bid.getSessionId()
+                bid.getUserPrincipal()
         );
     }
 
@@ -169,12 +169,12 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
-    public void cancelBid(UUID bidId, String sessionId) {
+    public void cancelBid(UUID bidId, String userPrincipal) {
         Bid bid = bidRepository.findById(bidId)
                 .orElseThrow(() -> new EntityNotFoundException("Bid not found: " + bidId));
 
         // only the session that created this bid can cancel it
-        if (!sessionId.equals(bid.getSessionId())) {
+        if (!userPrincipal.equals(bid.getUserPrincipal())) {
             throw new BidRejectedException("Not your bid");
         }
 

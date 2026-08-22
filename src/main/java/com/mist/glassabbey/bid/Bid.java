@@ -29,8 +29,8 @@ public class Bid {
     @JoinColumn(name = "nwc_conn_id", nullable = false)
     private NwcConn nwcConn;
 
-    @Column(name = "session_id")
-    private String sessionId;
+    @Column(name = "user_principal")
+    private String userPrincipal;
 
     @Column(name = "idempotency_key", nullable = false, unique = true)
     private UUID idempotencyKey;

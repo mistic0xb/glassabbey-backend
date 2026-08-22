@@ -35,7 +35,7 @@ public class BidScheduler {
             eventPublisher.publishPaymentExpired(
                     bid.getAuction().getPiece().getId(),
                     bid.getId().toString(),
-                    bid.getSessionId()
+                    bid.getUserPrincipal()
             );
         });
     }
