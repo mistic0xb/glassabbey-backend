@@ -38,6 +38,10 @@ public class PieceServiceImpl implements PieceService {
                 .gallery(existingGallery)
                 .title(request.title())
                 .description(request.description())
+                .artistName(request.artistName())
+                .artistProfile(request.artistProfile())
+                .medium(request.medium())
+                .dimensions(request.dimensions())
                 .imgUrl(request.imgUrl())
                 .basePriceSats(request.basePriceSats())
                 .build();
@@ -76,6 +80,10 @@ public class PieceServiceImpl implements PieceService {
 
         existingPiece.setTitle(request.title());
         existingPiece.setDescription(request.description());
+        existingPiece.setArtistName(request.artistName());
+        existingPiece.setArtistProfile(request.artistProfile());
+        existingPiece.setMedium(request.medium());
+        existingPiece.setDimensions(request.dimensions());
         existingPiece.setImgUrl(request.imgUrl());
         existingPiece.setBasePriceSats(request.basePriceSats());
 

@@ -30,6 +30,18 @@ public class Piece {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "artist_name", nullable = false)
+    private String artistName;
+
+    @Column(name = "artist_profile", columnDefinition = "TEXT")
+    private String artistProfile;
+
+    @Column(name = "medium")
+    private String medium;
+
+    @Column(name = "dimensions")
+    private String dimensions;
+
     @Column(name = "img_url")
     private String imgUrl;
 

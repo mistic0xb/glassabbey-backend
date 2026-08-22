@@ -8,8 +8,12 @@ public record PieceDto(
         UUID galleryId,
         String title,
         String description,
+        String artistName,
+        String artistProfile,
+        String medium,
+        String dimensions,
         String imgUrl,
-        String basePriceSats,
+        Long basePriceSats,
         Instant createdAt,
         Instant updatedAt
 ) {
