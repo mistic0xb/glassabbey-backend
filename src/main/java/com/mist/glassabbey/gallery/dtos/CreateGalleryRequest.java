@@ -19,6 +19,13 @@ public record CreateGalleryRequest(
         @Size(min = 10, max = 5000, message = "Description name must be between {min} and {max} characters")
         String description,
 
+        @Size(max = 512, message = "Cover image URL must not exceed 512 characters")
+        @Pattern(
+                regexp = "^(https?://.*)?$",
+                message = "Cover image URL must be a valid HTTP or HTTPS URL"
+        )
+        String coverImageUrl,
+
         @NotNull(message = "Gallery auction end date is needed")
         Instant endAt
 ) {
