@@ -12,6 +12,18 @@ public record CreatePieceRequest(
         @Size(min = 10, max = 5000, message = "Description name must be between {min} and {max} characters")
         String description,
 
+        @NotBlank(message = "Artist name is required")
+        @Size(max = 255, message = "Artist name cannot exceed 255 characters")
+        String artistName,
+
+        String artistProfile,
+
+        @Size(max = 100, message = "Medium description too long")
+        String medium,
+
+        @Size(max = 100, message = "Dimensions description too long")
+        String dimensions,
+
         String imgUrl,
 
         @NotNull(message = "Base price should not be empty")
