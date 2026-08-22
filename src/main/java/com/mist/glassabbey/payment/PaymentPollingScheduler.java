@@ -9,8 +9,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -21,12 +23,13 @@ public class PaymentPollingScheduler {
     private final BidService bidService;
     private final NwcService nwcService;
 
-    @Scheduled(fixedDelay = 5000)  // every 5 seconds
+    @Scheduled(fixedDelay = 5000) // every 5 seconds
+    @Transactional
     public void pollPendingPayments() {
         List<Bid> pendingBids = bidRepository.findAllPending();
         if (pendingBids.isEmpty()) return;
 
-        log.debug("Polling {} pending bids", pendingBids.size());
+        log.debug("Polling {} pending bids", Optional.of(pendingBids.size()));
 
         for (Bid bid : pendingBids) {
             try {
