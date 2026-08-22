@@ -18,6 +18,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -35,12 +36,15 @@ public class BidWebSocketController {
     public void onSubscribe(SessionSubscribeEvent event) {
         StompHeaderAccessor headers = StompHeaderAccessor.wrap(event.getMessage());
         String destination = headers.getDestination();
-        String sessionId = headers.getSessionId();
 
         // only handle auction room subs
         if (destination == null || !destination.startsWith("/topic/auction")) return;
+        String pieceId = destination.replace("/topic/auction/", "").trim();
 
-        String pieceId = destination.replace("/topic/auction", "");
+        String principal = headers.getUser() != null ? headers.getUser().getName() : null;
+        if (principal == null) return;
+
+        log.info("[STOMP Subscribe] destination='{}' | pieceId='{}' | principal='{}'", destination, pieceId, principal);
 
         try {
             Auction auction = auctionRepository.findByPieceId(UUID.fromString(pieceId))
@@ -49,9 +53,8 @@ public class BidWebSocketController {
             List<BidDto> topBidders = bidService.getLeaderBoard(auction.getId());
 
             // push state to this client only
-            assert sessionId != null;
             messaging.convertAndSendToUser(
-                    sessionId,
+                    principal,
                     "/queue/bid",
                     Map.of(
                             "type", "STATE",
@@ -62,7 +65,7 @@ public class BidWebSocketController {
                             "topBidders", topBidders
                     )
             );
-            log.info("[{}] State pushed to session: {}", pieceId, sessionId);
+            log.info("STATE PUSHED: pieceId={}, principal={}", pieceId, principal);
         } catch (Exception e) {
             log.error("[{}] Failed to push state on subscribe: {}", pieceId, e.getMessage());
         }
@@ -70,28 +73,26 @@ public class BidWebSocketController {
 
     // submit bid
     @MessageMapping("/auction/{pieceId}/bid")
-    public void submitBid(
+    public void bid(
             @DestinationVariable UUID pieceId,
             @Payload SubmitBidRequest request,
-            SimpMessageHeaderAccessor headers
+            SimpMessageHeaderAccessor headers,
+            Principal principal
     ) {
         String sessionId = headers.getSessionId();
-        log.info("[{}] SUBMIT_BID from session={}, bidder={}", pieceId, sessionId, request.bidderName());
+        String userPrincipal = (principal != null) ? principal.getName() : sessionId;
+        log.info("SUBMIT_BID pieceId={}, sessionId={},userPrincipal={}, bidder={}", pieceId, sessionId, userPrincipal, request.bidderName());
 
         try {
-            BidAcceptedResponse result = bidService.submitBid(
-                    pieceId,
-                    request,
-                    sessionId
-            );
+            BidAcceptedResponse result = bidService.submitBid(pieceId, request, userPrincipal);
+            log.info("BID_ACCEPTED for user={}", userPrincipal);
 
-            // tell this bidder their bid was accepted + invoice
-            assert sessionId != null;
+            assert userPrincipal != null;
             messaging.convertAndSendToUser(
-                    sessionId,
+                    userPrincipal,
                     "/queue/bid",
                     Map.of(
-                            "type", BidStatus.ACCEPTED,
+                            "type", "BID_ACCEPTED",
                             "bidId", result.bidId(),
                             "bidderName", result.bidderName(),
                             "willingAmtSats", result.willingAmtSats(),
@@ -102,16 +103,41 @@ public class BidWebSocketController {
             );
 
         } catch (Exception e) {
-            log.warn("[{}] BID_REJECTED — session={}, reason={}", pieceId, sessionId, e.getMessage());
-            assert sessionId != null;
+            log.warn("BID_REJECTED: pieceId={}, reason={}", pieceId, e.getMessage());
+            assert userPrincipal != null;
             messaging.convertAndSendToUser(
-                    sessionId,
+                    userPrincipal,
                     "/queue/bid",
                     Map.of(
-                            "type", BidStatus.REJECTED,
+                            "type", "BID_REJECTED",
                             "reason", e.getMessage()
                     )
             );
+        }
+    }
+
+    // cancel bid
+    @MessageMapping("/auction/{pieceId}/cancel")
+    public void cancel(
+            @DestinationVariable UUID pieceId,
+            @Payload Map<String, String> payload,
+            SimpMessageHeaderAccessor headers,
+            Principal principal
+    ) {
+        String bidId = payload.get("bidId");
+
+        if (bidId == null) {
+            log.warn("CANCEL_BID missing bidId, pieceId={}", pieceId);
+            return;
+        }
+
+        String userPrincipal = principal.getName();
+        log.info("[CANCEL_BID] pieceId={} | bidId={} | principal={}", pieceId, bidId, userPrincipal);
+
+        try {
+            bidService.cancelBid(UUID.fromString(bidId), userPrincipal);
+        } catch (Exception e) {
+            log.warn("Cancel failed: {}", e.getMessage());
         }
     }
 }
