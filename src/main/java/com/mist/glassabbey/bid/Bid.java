@@ -25,7 +25,7 @@ public class Bid {
     @JoinColumn(name = "auction_id", nullable = false)
     private Auction auction;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "nwc_conn_id", nullable = false)
     private NwcConn nwcConn;
 
