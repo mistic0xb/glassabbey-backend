@@ -35,6 +35,7 @@ public class GalleryServiceImpl implements GalleryService {
                 .creator(creator)
                 .title(request.title())
                 .description(request.description())
+                .coverImageUrl(request.coverImageUrl())
                 .endAt(request.endAt())
                 .status(GalleryStatus.DRAFT)
                 .build();
@@ -85,6 +86,7 @@ public class GalleryServiceImpl implements GalleryService {
 
         existingGallery.setTitle(request.title());
         existingGallery.setDescription(request.description());
+        existingGallery.setCoverImageUrl(request.coverImageUrl());
         existingGallery.setEndAt(request.endAt());
         existingGallery.setUpdatedAt(Instant.now());
 

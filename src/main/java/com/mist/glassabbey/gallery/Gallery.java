@@ -31,6 +31,9 @@ public class Gallery {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "cover_image_url")
+    private String coverImageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private GalleryStatus status;

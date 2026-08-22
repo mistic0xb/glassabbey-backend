@@ -1,5 +1,7 @@
 package com.mist.glassabbey.gallery.dtos;
 
+import com.mist.glassabbey.gallery.GalleryStatus;
+
 import java.time.Instant;
 
 public record GalleryDto(
@@ -8,8 +10,9 @@ public record GalleryDto(
         String creatorName,
         String title,
         String description,
+        String coverImageUrl,
         Integer pieceCount,
-        String status,
+        GalleryStatus status,
         Instant publishedAt,
         Instant endAt,
         Instant createdAt,
