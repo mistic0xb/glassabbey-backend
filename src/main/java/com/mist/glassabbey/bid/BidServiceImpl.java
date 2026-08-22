@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -71,7 +72,7 @@ public class BidServiceImpl implements BidService {
         }
 
         // 5. validate willing amt > current price
-        long willingAmt = auction.getCurrentPriceSats() + request.bidIncrementSats();
+        Long willingAmt = auction.getCurrentPriceSats() + request.bidIncrementSats();
         if (willingAmt <= auction.getCurrentPriceSats()) {
             throw new BidRejectedException("Bid increment must be positive");
         }
@@ -102,7 +103,7 @@ public class BidServiceImpl implements BidService {
                 .status(BidStatus.PENDING)
                 .build();
         bidRepository.save(bid);
-        log.info("[{}] Bid accepted — bidder={}, willingAmt={}", pieceId, request.bidderName(), willingAmt);
+        log.info("BID ACCEPTED: pieceId=[{}], bidder={}, willingAmt={}", pieceId, request.bidderName(), willingAmt);
 
         // 9. broadcast pending bid to room
         eventPublisher.publishBidPending(
@@ -123,18 +124,75 @@ public class BidServiceImpl implements BidService {
 
     @Override
     public void confirmPayment(String paymentHash) {
+        // atomic status change PENDING -> CONFIRM
+        int updated = bidRepository.confirmIfPending(paymentHash, Instant.now());
+        if (updated == 0) {
+            log.info("Payment already confirmed or expired: hash={}", paymentHash);
+            return;
+        }
 
+        Bid bid = bidRepository.findByPaymentHash(paymentHash)
+                .orElseThrow(() -> new EntityNotFoundException("Bid not found: " + paymentHash));
+
+        // atomic price update
+        int priceUpdated = auctionRepository.updatePriceIfHigher(
+                bid.getAuction().getId(),
+                bid.getWillingAmtSats()
+        );
+
+        // get current price
+        Auction auction = auctionRepository.findById(bid.getAuction().getId())
+                .orElseThrow(() -> new EntityNotFoundException("Auction not found with auctionId:  " + bid.getAuction().getId()));
+
+        log.info("[{}] Payment confirmed — bidder={}, willingAmt={}, priceUpdated={}",
+                auction.getPiece().getId(),
+                bid.getBidderName(),
+                bid.getWillingAmtSats(),
+                priceUpdated > 0
+        );
+
+        // broadcast to room
+        eventPublisher.publishPriceUpdate(
+                auction.getPiece().getId(),
+                auction.getCurrentPriceSats(),
+                bid.getBidderName(),
+                bid.getWillingAmtSats(),
+                bid.getSessionId()
+        );
+    }
+
+    @Override
+    public boolean isPaymentConfirmed(UUID bidId) {
+        return bidRepository.findById(bidId)
+                .map(bid -> bid.getStatus() == BidStatus.CONFIRMED)
+                .orElse(false);
     }
 
     @Override
     public void cancelBid(UUID bidId, String sessionId) {
+        Bid bid = bidRepository.findById(bidId)
+                .orElseThrow(() -> new EntityNotFoundException("Bid not found: " + bidId));
 
+        // only the session that created this bid can cancel it
+        if (!sessionId.equals(bid.getSessionId())) {
+            throw new BidRejectedException("Not your bid");
+        }
+
+        // can only cancel a PENDING bid
+        if (bid.getStatus() != BidStatus.PENDING) {
+            log.info("Cancel ignored — bid {} is already {}", bidId, bid.getStatus());
+            return;
+        }
+
+        bid.setStatus(BidStatus.EXPIRED);
+        bidRepository.save(bid);
+        log.info("Bid cancelled: id={}, bidder={}", bidId, bid.getBidderName());
     }
 
     @Override
     public List<BidDto> getLeaderBoard(UUID auctionId) {
         return bidRepository
-                .findByAuctionIdAndStatusOrderByWillingAmtSatsDesc(auctionId, BidStatus.PENDING) //TODO: change the confirmed on prod
+                .findByAuctionIdAndStatusOrderByWillingAmtSatsDesc(auctionId, BidStatus.CONFIRMED)
                 .stream()
                 .map(bid -> bidMapper.toDto(bid))
                 .toList();

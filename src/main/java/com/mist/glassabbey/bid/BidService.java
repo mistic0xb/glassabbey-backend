@@ -12,6 +12,8 @@ public interface BidService {
 
     void confirmPayment(String paymentHash);
 
+    boolean isPaymentConfirmed(UUID bidId);
+
     void cancelBid(UUID bidId, String sessionId);
 
     List<BidDto> getLeaderBoard(UUID auctionId);
