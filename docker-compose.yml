@@ -37,6 +37,9 @@ services:
     build:
       context: ../glassabbey-frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_WS_URL: ${VITE_WS_URL}
     container_name: glassabbey-frontend
     restart: unless-stopped
     depends_on:
