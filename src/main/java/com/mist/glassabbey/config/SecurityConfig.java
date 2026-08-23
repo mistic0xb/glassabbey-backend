@@ -27,6 +27,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // Auth endpoints
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/challenge").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/verify").permitAll()
@@ -68,12 +70,12 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://localhost:4173",
-                "http://localhost:8080",
-                "http://localhost:3000",
-                "http://192.168.*:*"
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost",
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "http://192.168.*:*",
+                "https://glassabbey.mistic.xyz"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
