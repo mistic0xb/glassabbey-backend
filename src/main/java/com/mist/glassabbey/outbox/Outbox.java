@@ -37,10 +37,4 @@ public class Outbox {
 
     @Column(name = "processed_at")
     private Instant processedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = Instant.now();
-        if (processed == null) processed = false;
-    }
 }
