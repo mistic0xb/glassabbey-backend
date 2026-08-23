@@ -39,10 +39,26 @@ services:
       dockerfile: Dockerfile
     container_name: glassabbey-frontend
     restart: unless-stopped
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: glassabbey-caddy
+    restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
     depends_on:
+      - frontend
       - backend
 
 volumes:
   pg-data:
+  caddy-data:
+  caddy-config:

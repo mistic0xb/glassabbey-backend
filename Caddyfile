@@ -1,0 +1,16 @@
+glassabbey.mistic.xyz {
+    # proxy API calls to spring-boot
+    handle /api/* {
+        reverse_proxy backend:8080
+    }
+
+    # proxy WS connections
+    handle /ws* {
+        reverse_proxy backend:8080
+    }
+
+    # proxy all other requests to the frontend static server
+    handle {
+        reverse_proxy frontend:80
+    }
+}
