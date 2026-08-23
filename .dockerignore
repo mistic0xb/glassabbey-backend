@@ -1,0 +1,6 @@
+*.md
+*.env
+target
+build
+*.jar
+.idea
