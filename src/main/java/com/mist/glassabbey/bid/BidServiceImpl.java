@@ -144,21 +144,28 @@ public class BidServiceImpl implements BidService {
         Auction auction = auctionRepository.findById(bid.getAuction().getId())
                 .orElseThrow(() -> new EntityNotFoundException("Auction not found with auctionId:  " + bid.getAuction().getId()));
 
-        log.info("[{}] Payment confirmed — bidder={}, willingAmt={}, priceUpdated={}",
-                auction.getPiece().getId(),
-                bid.getBidderName(),
-                bid.getWillingAmtSats(),
-                priceUpdated > 0
-        );
+        if (priceUpdated > 0) {
+            // this bid is now the leader
+            log.info("PRICE_UPDATED: to {} by {}", auction.getCurrentPriceSats(), bid.getBidderName());
+            eventPublisher.publishPriceUpdate(
+                    auction.getPiece().getId(),
+                    auction.getCurrentPriceSats(),
+                    bid.getBidderName(),
+                    bid.getWillingAmtSats(),
+                    bid.getUserPrincipal()
+            );
+        } else {
+            // bid confirmed but didn't move the price -> notify this bidder specifically
+            // so they know to rebid at a higher amount
+            log.info("BID_CONFIRMED_BUT_OUTBID: willingAmt={}, currentPrice={}",
+                    bid.getWillingAmtSats(), auction.getCurrentPriceSats());
 
-        // broadcast to room
-        eventPublisher.publishPriceUpdate(
-                auction.getPiece().getId(),
-                auction.getCurrentPriceSats(),
-                bid.getBidderName(),
-                bid.getWillingAmtSats(),
-                bid.getUserPrincipal()
-        );
+            eventPublisher.publishBidOutbid(
+                    auction.getCurrentPriceSats(),
+                    bid.getWillingAmtSats(),
+                    bid.getUserPrincipal()
+            );
+        }
     }
 
     @Override

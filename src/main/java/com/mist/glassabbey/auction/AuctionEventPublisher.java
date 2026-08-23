@@ -47,6 +47,24 @@ public class AuctionEventPublisher {
         }
     }
 
+    public void publishBidOutbid(
+            Long currentPrice,
+            Long yourBid,
+            String userPrincipal) {
+        if (userPrincipal != null) {
+            messaging.convertAndSendToUser(
+                    userPrincipal,
+                    "/queue/bid",
+                    Map.of(
+                            "type", "BID_OUTBID",
+                            "currentPrice", currentPrice,
+                            "yourBid", yourBid,
+                            "message", "Your bid was matched. Current price is now " + currentPrice + ". Please bid again."
+                    )
+            );
+        }
+    }
+
     // broadcast pending bid to room
     public void publishBidPending(UUID pieceId, String bidderName, Long willingAmt) {
         messaging.convertAndSend(
