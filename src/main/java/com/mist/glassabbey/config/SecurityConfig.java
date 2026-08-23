@@ -27,26 +27,24 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth
-                                // Auth endpoints
-                                .requestMatchers(HttpMethod.GET, "/api/v1/auth/challenge").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/auth/verify").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/auth/me").permitAll()
+                        // Auth endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/challenge").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/verify").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/me").permitAll()
 
-                                // Protected GET endpoints
-                                .requestMatchers(HttpMethod.GET, "/api/v1/gallery/my").authenticated()
+                        // Protected GET endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/v1/gallery/my").authenticated()
 
-                                // Public endpoints
-                                .requestMatchers(HttpMethod.GET, "/api/v1/gallery/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/auction/**").permitAll()
-//                                .requestMatchers(HttpMethod.GET, "/api/v1/gallery").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/api/v1/gallery/*/piece").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/api/v1/gallery/*/piece/*").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/api/v1/auction/piece/*").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/api/v1/auction/*/bid").permitAll()
-                                .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
-                                .requestMatchers("/ws/**").permitAll()
+                        // Public endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/v1/gallery/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auction/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/bid/check/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auction/*/bid/check/*").permitAll()
+                        .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
+                        .requestMatchers("/api/v1/ws/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
 
-                                .anyRequest().authenticated()
+                        .anyRequest().authenticated()
                 )
 
                 .sessionManagement(session -> session
@@ -72,8 +70,10 @@ public class SecurityConfig {
 
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
+                "http://localhost:4173",
                 "http://localhost:8080",
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "http://192.168.*:*"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
