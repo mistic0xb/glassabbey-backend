@@ -160,6 +160,10 @@ public class BidServiceImpl implements BidService {
             log.info("BID_CONFIRMED_BUT_OUTBID: willingAmt={}, currentPrice={}",
                     bid.getWillingAmtSats(), auction.getCurrentPriceSats());
 
+            // set the bidStatus as OUTBID
+            bid.setStatus(BidStatus.OUTBID);
+            bidRepository.save(bid);
+
             eventPublisher.publishBidOutbid(
                     auction.getCurrentPriceSats(),
                     bid.getWillingAmtSats(),
