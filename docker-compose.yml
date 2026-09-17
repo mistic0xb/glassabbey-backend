@@ -3,8 +3,6 @@ services:
     image: postgres:17-alpine
     container_name: glassabbey-postgres
     restart: unless-stopped
-    ports:
-      - "5432:5432"
     env_file:
       - .env
     environment:
@@ -12,12 +10,14 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
     volumes:
       - pg-data:/var/lib/postgresql/data
+    networks:
+      - internal
 
   backend:
     build:
@@ -25,13 +25,16 @@ services:
       dockerfile: Dockerfile
     container_name: glassabbey-backend
     restart: unless-stopped
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     env_file:
       - .env
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - internal
+      - web
 
   frontend:
     build:
@@ -42,26 +45,18 @@ services:
         VITE_WS_URL: ${VITE_WS_URL}
     container_name: glassabbey-frontend
     restart: unless-stopped
+    expose:
+      - "80"
     depends_on:
       - backend
-
-  caddy:
-    image: caddy:2-alpine
-    container_name: glassabbey-caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data
-      - caddy-config:/config
-
-    depends_on:
-      - frontend
-      - backend
+    networks:
+      - web
 
 volumes:
   pg-data:
-  caddy-data:
-  caddy-config:
+
+networks:
+  internal:
+    driver: bridge
+  web:
+    external: true
