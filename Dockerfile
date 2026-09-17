@@ -12,4 +12,4 @@ FROM eclipse-temurin:25-jre-alpine@sha256:3137541deb3cac6626b5d9a4a2187bc0d6a343
 WORKDIR /opt/app
 EXPOSE 8080
 COPY --from=builder /opt/app/target/*.jar /opt/app/app.jar
-ENTRYPOINT ["java", "-jar", "/opt/app/app.jar"]
+ENTRYPOINT ["java","-Xms1g","-Xmx2g","-XX:+UseCompactObjectHeaders", "-jar", "/opt/app/app.jar"]
